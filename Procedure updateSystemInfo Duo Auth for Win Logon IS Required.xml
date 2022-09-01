@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="updateSystemInfo Duo Auth for Win Logon IS Required" treePres="3" id="168728270" folderId="65196191227991828498146712" treeFullPath="AI Scripts">
+    <Body description="Sets the value of the 'Duo Auth for Win Logon Required' custom field to 'True'">
+      <Statement name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo Auth for Win Logon Required" />
+        <Parameter xsi:type="StringParameter" name="Value" value="True" />
+      </Statement>
+    </Body>
+  </Procedure>
+</ScExport>
