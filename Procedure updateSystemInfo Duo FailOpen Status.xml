@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="updateSystemInfo Duo FailOpen Status" treePres="3" id="684907234" folderId="65196191227991828498146712" treeFullPath="AI Scripts">
+    <Body description="Sets the value of the 'Duo FailOpen Status' custom field&#xA;  1. If HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\FailOpen exists, and has a DWORD value 0, write 'Fail-Closed' to the custom field&#xA;  2. If the DWORD value is not 0, write 'Fail-Open' to the custom field&#xA;  3. If HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv does not exist, write 'ERROR-Duo-Not-Installed' to the custom field, because this procedure should only be run against machines that should have Duo">
+      <Statement description="If the registry value is '0', Duo Authentication for Windows Logon will fail closed&#xD;&#xA;If the registry value is '1', or the key does not exist, Duo will fail open&#xD;&#xA;  HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\FailOpen&#xD;&#xA;If the registry key is not there, write a procedure log entry, then exit" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Checking whether HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\ exists" />
+      </Statement>
+      <If description="Test for the existence of the registry key">
+        <Condition name="TestRegistryKey64">
+          <Parameter xsi:type="StringParameter" name="Path" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+        </Condition>
+        <Then>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="The registry key exists; checking the FailOpen value" />
+          </Statement>
+          <If description="Check whether the value of FailOpen is '0'&#xD;&#xA;If the value is '0', write 'Fail-Closed' to the 'Duo FailOpen Status' custom field&#xD;&#xA;If the value is NOT '0', write 'Fail-Open' to the 'Duo FailOpen Status' custom field">
+            <Condition name="CheckRegistryValue64">
+              <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\FailOpen" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+              <Parameter xsi:type="StringParameter" name="Value" value="0" />
+            </Condition>
+            <Then>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="FailOpen has value 0 - Duo will fail closed" />
+              </Statement>
+              <Statement name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                <Parameter xsi:type="StringParameter" name="Value" value="Fail-Closed" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Duo FailOpen Status updated" />
+              </Statement>
+            </Then>
+            <Else>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="FailOpen value is not 0 - Duo will fail open" />
+              </Statement>
+              <Statement name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                <Parameter xsi:type="StringParameter" name="Value" value="Fail-Open" />
+              </Statement>
+              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="Duo FailOpen Status updated" />
+              </Statement>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Duo Authentication for Windows Logon is not installed" />
+          </Statement>
+          <Statement description="Write an error to 'Duo FailOpen Status', because this procedure should only be run against machines that should have Duo installed" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+            <Parameter xsi:type="StringParameter" name="Value" value="ERROR-Duo-Not-Installed" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>
