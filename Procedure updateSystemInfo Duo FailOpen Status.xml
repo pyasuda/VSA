@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
+  <Procedure name="updateSystemInfo Duo FailOpen Status" treePres="3" id="684907234" folderId="65196191227991828498146712" treeFullPath="AI Scripts">
+    <Body description="Sets the value of the 'Duo FailOpen Status' custom field to show whether Duo is set to fail open or closed, based on property values in 'HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv'&#xA;  1. If the 'DuoCredProv' key exists, AND OfflineAvailable = '0' AND FailOpen = '1', then write 'Fail-Open'&#xA;  2. If the 'DuoCredProv' key exists, AND OfflineAvailable = '1', then write 'Fail-Closed' - Duo will fail closed whatever the value of FailOpen is&#xA;  3. If the 'DuoCredProv' key exists, write error messages for any other combination of OfflineAvailable and FailOpen&#xA;  4. If the 'DuoCredProv' key DOES NOT exist, write 'ERROR-Duo-Not-Installed', because this procedure should only be run against machines that should have Duo">
+      <Statement description="Sets the value of the 'Duo FailOpen Status' custom field to show whether Duo is set to fail open or closed, based on property values in 'HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv'&#xD;&#xA;If the 'DuoCredProv' key exists, AND OfflineAvailable = '0' AND FailOpen = '1', then write 'Fail-Open'&#xD;&#xA;If the 'DuoCredProv' key exists, AND OfflineAvailable = '1', then write 'Fail-Closed' - Duo will fail closed whatever the value of FailOpen is&#xD;&#xA;If the 'DuoCredProv' key exists, write error messages for any other combination of OfflineAvailable and FailOpen&#xD;&#xA;If the 'DuoCredProv' key DOES NOT exist, write 'ERROR-Duo-Not-Installed'" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+        <Parameter xsi:type="StringParameter" name="Comment" value="Checking whether HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\ exists" />
+      </Statement>
+      <If description="Test for the existence of the registry key">
+        <Condition name="TestRegistryKey64">
+          <Parameter xsi:type="StringParameter" name="Path" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+        </Condition>
+        <Then>
+          <Statement description="'HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv' exists" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="The registry key exists; checking the OfflineAvailable value" />
+          </Statement>
+          <If description="Check whether OfflineAvailable = '0'">
+            <Condition name="CheckRegistryValue64">
+              <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\OfflineAvailable" />
+              <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+              <Parameter xsi:type="StringParameter" name="Value" value="0" />
+            </Condition>
+            <Then>
+              <Statement description="OfflineAvailable = '0'" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                <Parameter xsi:type="StringParameter" name="Comment" value="OfflineAvailable value = '0'" />
+              </Statement>
+              <If description="Check whether FailOpen = '1'">
+                <Condition name="CheckRegistryValue64">
+                  <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\FailOpen" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="1" />
+                </Condition>
+                <Then>
+                  <Statement description="FailOpen = '1'&#xD;&#xA;Duo will fail open" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="FailOpen value = '1'" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="Duo will fail open" />
+                  </Statement>
+                  <Statement description="Write 'Fail-Open' to the custom field" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="Fail-Open" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="'Duo FailOpen Status' custom field updated to 'Fail-Open'" />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement description="FailOpen NOT = '1' - Something is wrong" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="ERROR - OfflineAvailable = '0' AND FailOpen NOT = '1'" />
+                  </Statement>
+                  <Statement description="Write 'ERROR-Check-OfflineAvailable-and-FailOpen-Settings' to the custom field" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="ERROR-Check-OfflineAvailable-and-FailOpen-Settings" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="'Duo FailOpen Status' custom field updated to 'ERROR-Check-OfflineAvailable-and-FailOpen-Settings'" />
+                  </Statement>
+                </Else>
+              </If>
+            </Then>
+            <Else>
+              <If description="OfflineAvailable NOT = '0'&#xD;&#xA;Check OfflineAvailable = '1'">
+                <Condition name="CheckRegistryValue64">
+                  <Parameter xsi:type="StringParameter" name="RegistryPath" value="HKEY_LOCAL_MACHINE\SOFTWARE\Duo Security\DuoCredProv\OfflineAvailable" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="1" />
+                </Condition>
+                <Then>
+                  <Statement description="OfflineAvailable = '1'" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="OfflineAvailable value = '1' - Duo will fail closed" />
+                  </Statement>
+                  <Statement description="Write 'Fail-Closed' to the custom field" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="Fail-Closed" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="'Duo FailOpen Status' custom field updated to 'Fail-Closed'" />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement description="OfflineAvailable NOT = '1' - Something is wrong; the value should be '0' or '1'" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="ERROR - OfflineAvailable is NOT = '0' OR '1'" />
+                  </Statement>
+                  <Statement name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="ERROR-OfflineAvailable-NE-'0'-OR-'1'" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="'Duo FailOpen Status' custom field updated to 'ERROR-OfflineAvailable-NE-'0'-OR-'1' '" />
+                  </Statement>
+                </Else>
+              </If>
+            </Else>
+          </If>
+        </Then>
+        <Else>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="Duo Authentication for Windows Logon is not installed" />
+          </Statement>
+          <Statement description="Write an error to 'Duo FailOpen Status', because this procedure should only be run against machines that should have Duo installed" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="ColumnName" value="Duo FailOpen Status" />
+            <Parameter xsi:type="StringParameter" name="Value" value="ERROR-Duo-Not-Installed" />
+          </Statement>
+        </Else>
+      </If>
+    </Body>
+  </Procedure>
+</ScExport>
