@@ -1,40 +1,61 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ScExport xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.kaseya.com/vsa/2008/12/Scripting">
-  <Procedure name="updateSystemInfo Blackpoint SnapAgent IS Required" treePres="3" id="584588497" folderId="881614126535883" treeFullPath="Centralized Service.Policy Procedures">
+  <Procedure name="updateSystemInfo Blackpoint SnapAgent IS Required" treePres="3" id="514414947" folderId="12714718918228124164261473" treeFullPath="myProcedures - pyasuda">
     <Body description="Sets the value of the 'SnapAgent Required' custom field to 'True', meaning the SnapAgent is required on this endpoint, if the existing value is not 'False', or already 'True'">
-      <If description="If the value the value of  the 'SnapAgent Required' Custom Field is already 'True', update the Procedure Log and stop">
+      <If description="Check for a null value in the 'SnapAgent Required' custom field - 'Is Equal To' tests fail for null values">
         <Condition name="CheckVariable">
           <Parameter xsi:type="StringParameter" name="VariableName" value="#vSystemInfoManual.[SnapAgent Required]#" />
-          <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
-          <Parameter xsi:type="StringParameter" name="Value" value="True" />
+          <Parameter xsi:type="EnumParameter" name="Condition" value="Exists" />
+          <Parameter xsi:type="StringParameter" name="Value" value="" />
         </Condition>
         <Then>
-          <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
-            <Parameter xsi:type="StringParameter" name="Comment" value="The value of 'SnapAgent Required' is already 'True'" />
-          </Statement>
-        </Then>
-        <Else>
-          <If description="If the value of the 'SnapAgent Required' Custom Field is 'False', update the Procedure Log and stop">
+          <If description="If the value the value of  the 'SnapAgent Required' Custom Field is already 'True', update the Procedure Log and stop">
             <Condition name="CheckVariable">
               <Parameter xsi:type="StringParameter" name="VariableName" value="#vSystemInfoManual.[SnapAgent Required]#" />
               <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
-              <Parameter xsi:type="StringParameter" name="Value" value="False" />
+              <Parameter xsi:type="StringParameter" name="Value" value="True" />
             </Condition>
             <Then>
               <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
-                <Parameter xsi:type="StringParameter" name="Comment" value="The value of 'SnapAgent Required' is 'False'" />
+                <Parameter xsi:type="StringParameter" name="Comment" value="The value of 'SnapAgent Required' is already 'True' - No change made" />
               </Statement>
             </Then>
             <Else>
-              <Statement description="Set the value of the 'SnapAgent Required' Custom Field to 'True', and update the Procedure Log" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
-                <Parameter xsi:type="StringParameter" name="ColumnName" value="SnapAgent Required" />
-                <Parameter xsi:type="StringParameter" name="Value" value="True" />
-              </Statement>
-              <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
-                <Parameter xsi:type="StringParameter" name="Comment" value="'SnapAgent Required' set to 'True'" />
-              </Statement>
+              <If description="If the value of the 'SnapAgent Required' Custom Field is 'False', update the Procedure Log and stop">
+                <Condition name="CheckVariable">
+                  <Parameter xsi:type="StringParameter" name="VariableName" value="#vSystemInfoManual.[SnapAgent Required]#" />
+                  <Parameter xsi:type="EnumParameter" name="Condition" value="Equals" />
+                  <Parameter xsi:type="StringParameter" name="Value" value="False" />
+                </Condition>
+                <Then>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="The value of 'SnapAgent Required' is 'False', so no change was made" />
+                  </Statement>
+                </Then>
+                <Else>
+                  <Statement description="Set the value of the 'SnapAgent Required' Custom Field to 'True', and update the Procedure Log" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="ColumnName" value="SnapAgent Required" />
+                    <Parameter xsi:type="StringParameter" name="Value" value="True" />
+                  </Statement>
+                  <Statement name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+                    <Parameter xsi:type="StringParameter" name="Comment" value="'SnapAgent Required' set to 'True' - Previous value was neither 'True' nor 'False'" />
+                  </Statement>
+                </Else>
+              </If>
             </Else>
           </If>
+        </Then>
+        <Else>
+          <Statement description="Update the Procedure Log" name="WriteScriptLogEntry" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="Comment" value="The value of 'SnapAgent Required' is null" />
+          </Statement>
+          <Statement description="Set the value of 'SnapAgent Required' to 'True', and update the Procedure Log" name="UpdateSystemInfo" continueOnFail="false" osType="Windows">
+            <Parameter xsi:type="StringParameter" name="ColumnName" value="SnapAgent Required" />
+            <Parameter xsi:type="StringParameter" name="Value" value="True" />
+          </Statement>
+          <Statement name="WriteScriptLogEntry" continueOnFail="false">
+            <Parameter xsi:type="StringParameter" name="Comment" value="'SnapAgent Required' set to 'True'" />
+          </Statement>
         </Else>
       </If>
     </Body>
